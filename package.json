@@ -1,0 +1,12 @@
+{
+  "name": "superintendent-log-api",
+  "version": "1.0.0",
+  "description": "Backend API for Superintendent Daily Log",
+  "main": "api/chat.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "keywords": ["api", "anthropic", "quickbase"],
+  "author": "Your Company",
+  "license": "MIT"
+}
