@@ -1,3 +1,4 @@
+
 // api/submit.js - Handles data extraction and Quickbase submission
 export default async function handler(req, res) {
   // Enable CORS - Allow all origins
@@ -101,9 +102,9 @@ Return ONLY the JSON object, no other text.`;
     const qbPayload = {
       to: process.env.QB_TABLE_ID,
       data: [{
-        16: { value: logData.project },
+        14: { value: projectId || logData.project }, // Related Project (Field 14)
         6: { value: logData.date },
-        7: { value: logData.name },
+        19: { value: userName || logData.name }, // Author_User (Field 19)
         8: { value: logData.weather_summary },
         9: { value: logData.sub_and_crew_count },
         10: { value: logData.issues_delays },
