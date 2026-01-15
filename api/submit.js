@@ -20,11 +20,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { conversationHistory } = req.body;
+    const { conversationHistory, projectId, userName } = req.body;
 
     if (!conversationHistory || !Array.isArray(conversationHistory)) {
       return res.status(400).json({ error: 'conversationHistory array is required' });
     }
+
+    console.log('Received pre-filled data:', { projectId, userName });
 
     // Get today's date
     const today = new Date();
