@@ -1,4 +1,3 @@
-
 // api/submit.js - Handles data extraction and Quickbase submission
 export default async function handler(req, res) {
   // Enable CORS - Allow all origins
@@ -98,13 +97,24 @@ Return ONLY the JSON object, no other text.`;
       `${msg.role === 'user' ? 'Superintendent' : 'AI'}: ${msg.content}`
     ).join('\n\n');
 
+    console.log('Extracted log data:', logData);
+    console.log('Project ID type:', typeof projectId, projectId);
+
+    // Prepare the project value - convert to number if it's numeric
+    const projectValue = projectId ? parseInt(projectId, 10) : logData.project;
+    
+    if (projectId && isNaN(projectValue)) {
+      console.error('Project ID is not a valid number:', projectId);
+      throw new Error('Project ID must be a numeric value');
+    }
+
     // Step 3: Submit to Quickbase
     const qbPayload = {
       to: process.env.QB_TABLE_ID,
       data: [{
-        14: { value: projectId || logData.project }, // Related Project (Field 14)
+        14: { value: projectValue }, // Related Project (Field 14) - NUMERIC
         6: { value: logData.date },
-        19: { value: userName || logData.name }, // Author_User (Field 19)
+        19: { value: userName || logData.name }, // Author_User (Field 19) - TEXT
         8: { value: logData.weather_summary },
         9: { value: logData.sub_and_crew_count },
         10: { value: logData.issues_delays },
@@ -113,6 +123,8 @@ Return ONLY the JSON object, no other text.`;
         13: { value: transcript }
       }]
     };
+
+    console.log('Quickbase payload:', JSON.stringify(qbPayload, null, 2));
 
     const qbResponse = await fetch('https://api.quickbase.com/v1/records', {
       method: 'POST',
