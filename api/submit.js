@@ -81,6 +81,16 @@ Return ONLY the JSON object, no other text.`;
     }
     
     const logData = JSON.parse(jsonMatch[0]);
+    
+    // Override with pre-filled data if provided
+    if (projectId) {
+      logData.project = projectId;
+      console.log('Using pre-filled project:', projectId);
+    }
+    if (userName) {
+      logData.name = userName;
+      console.log('Using pre-filled user:', userName);
+    }
 
     // Step 2: Create conversation transcript
     const transcript = conversationHistory.map(msg => 
