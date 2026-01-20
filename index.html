@@ -497,14 +497,16 @@ REQUIRED FIELDS TO COLLECT:
 - notes_photos (optional)
 
 CONVERSATION RULES:
-1. The superintendent may provide multiple pieces of information at once - extract everything they mentionand reword for entry concise and professionally. 
+1. The superintendent may provide multiple pieces of information at once - extract everything they mention
 2. Ask one or two questions at a time for ONLY the missing information
 3. Be concise and mobile-friendly
 4. DO NOT ask for project or name - already provided
-5. Start by asking about what happened today (weather, crew, issues, etc.)
-6. After each response, identify what's been provided and what's still needed
-7. When all REQUIRED fields are collected, ask: "Should I submit this log now?" 
-8. Always provide submit button once collected. Never submit automatically. 
+5. DO NOT ask about the date - assume today unless they mention otherwise
+6. Start by asking about what happened today (weather, crew, issues, etc.)
+7. After each response, identify what's been provided and what's still needed
+8. When all REQUIRED fields (weather, crew count, issues, visitors) are collected, you MUST ask: "I have all the information. Should I submit this log now?" and WAIT for user to say YES
+9. NEVER say the log is submitted or saved - only the user can submit by confirming
+10. If user says YES/CONFIRM/SUBMIT after you ask, stop responding - the system will handle submission
 
 Start the conversation.`;
             
@@ -545,11 +547,16 @@ Start the conversation.`;
             addMessage('user', message);
             conversationHistory.push({ role: 'user', content: message });
             
+            // Check if user is confirming submission
             const submitSection = document.getElementById('submitSection');
+            const lowerMessage = message.toLowerCase();
+            
             if (submitSection.classList.contains('show') && 
-                (message.toLowerCase().includes('yes') || 
-                 message.toLowerCase().includes('submit') ||
-                 message.toLowerCase().includes('confirm'))) {
+                (lowerMessage === 'yes' || 
+                 lowerMessage === 'confirm' ||
+                 lowerMessage === 'submit' ||
+                 lowerMessage.includes('yes') ||
+                 lowerMessage.includes('submit'))) {
                 await submitToQuickbase();
                 return;
             }
@@ -579,9 +586,11 @@ Start the conversation.`;
                 addMessage('assistant', assistantMessage);
                 conversationHistory.push({ role: 'assistant', content: assistantMessage });
                 
+                // Detect if AI is asking to submit
                 const lowerMsg = assistantMessage.toLowerCase();
-                if (lowerMsg.includes('submit') && 
-                    (lowerMsg.includes('log') || lowerMsg.includes('now') || lowerMsg.includes('?'))) {
+                if ((lowerMsg.includes('submit') || lowerMsg.includes('save')) && 
+                    (lowerMsg.includes('?') || lowerMsg.includes('ready'))) {
+                    console.log('AI asked for submission confirmation - showing submit button');
                     document.getElementById('submitSection').classList.add('show');
                 }
                 
