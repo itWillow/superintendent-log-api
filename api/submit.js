@@ -39,17 +39,20 @@ export default async function handler(req, res) {
     const extractPrompt = `Based on our entire conversation, extract the following fields in JSON format:
 
 {
-  "project": "project name",
+  "project": "project name or ID",
   "date": "${todayDate}",
-  "name": "superintendent name or 'Not provided'",
-  "weather_summary": "weather description or 'Not provided'",
-  "sub_and_crew_count": "count details or 'Not provided'",
+  "name": "superintendent name",
+  "weather_summary": "weather description",
+  "sub_and_crew_count": "count details",
   "issues_delays": "any issues or 'None'",
   "visitors": "visitor info or 'None'",
   "notes_photos": "notes or 'None'"
 }
 
-Return ONLY the JSON object, no other text.`;
+IMPORTANT: 
+- Always use "${todayDate}" for the date field unless the user explicitly mentioned a different date
+- Return ONLY the JSON object, no other text.`;
+
 
     const extractResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
