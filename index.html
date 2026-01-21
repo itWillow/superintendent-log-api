@@ -496,17 +496,23 @@ REQUIRED FIELDS TO COLLECT:
 - visitors (if none mentioned, ask once)
 - notes_photos (optional)
 
+CRITICAL RULES:
+1. You are ONLY collecting information - you CANNOT save or submit anything
+2. NEVER say "logged", "saved", "submitted", "recorded", or "complete"
+3. When you have all required fields, you MUST say EXACTLY: "I have all the information. Should I submit this log now?"
+4. DO NOT thank them for completing the log
+5. DO NOT say anything is recorded or saved
+6. You are just an assistant gathering information - only the user can submit
+
 CONVERSATION RULES:
 1. The superintendent may provide multiple pieces of information at once - extract everything they mention
 2. Ask one or two questions at a time for ONLY the missing information
 3. Be concise and mobile-friendly
 4. DO NOT ask for project or name - already provided
 5. DO NOT ask about the date - assume today unless they mention otherwise
-6. Start by asking about what happened today (weather, crew, issues, etc.)
-7. After each response, identify what's been provided and what's still needed
-8. When all REQUIRED fields (weather, crew count, issues, visitors) are collected, you MUST ask: "I have all the information. Should I submit this log now?" and WAIT for user to say YES
-9. NEVER say the log is submitted or saved - only the user can submit by confirming
-10. If user says YES/CONFIRM/SUBMIT after you ask, stop responding - the system will handle submission
+6. After each response, identify what's been provided and what's still needed
+7. When all REQUIRED fields (weather, crew count, issues, visitors) are collected, you MUST ask: "I have all the information. Should I submit this log now?"
+8. Wait for user confirmation before saying anything else
 
 Start the conversation.`;
             
@@ -586,11 +592,17 @@ Start the conversation.`;
                 addMessage('assistant', assistantMessage);
                 conversationHistory.push({ role: 'assistant', content: assistantMessage });
                 
-                // Detect if AI is asking to submit
+                // Detect if AI is asking to submit - look for the exact phrase
                 const lowerMsg = assistantMessage.toLowerCase();
-                if ((lowerMsg.includes('submit') || lowerMsg.includes('save')) && 
-                    (lowerMsg.includes('?') || lowerMsg.includes('ready'))) {
-                    console.log('AI asked for submission confirmation - showing submit button');
+                const isAskingToSubmit = 
+                    (lowerMsg.includes('should i submit') || 
+                     lowerMsg.includes('ready to submit') ||
+                     lowerMsg.includes('submit this log') ||
+                     lowerMsg.includes('submit the log')) &&
+                    lowerMsg.includes('?');
+                
+                if (isAskingToSubmit) {
+                    console.log('AI asked for submission - showing submit button');
                     document.getElementById('submitSection').classList.add('show');
                 }
                 
