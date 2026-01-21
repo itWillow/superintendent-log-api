@@ -481,44 +481,31 @@
         function initializeChat() {
             conversationHistory = [];
             
-            const systemPrompt = `You are helping a superintendent complete their daily log. Today's date is ${getTodayDate()}.
+            const systemPrompt = `You are a data collection assistant for daily construction logs.
 
-Project ID: ${projectId} (already known, don't ask)
-Superintendent Name: ${userName} (already known, don't ask)
+GIVEN INFORMATION (do not ask about these):
+- Project: ${projectId}
+- Superintendent: ${userName}  
+- Date: ${getTodayDate()}
 
-REQUIRED FIELDS TO COLLECT:
-- project (ALREADY PROVIDED as ${projectId} - skip this)
-- date (assume today: ${getTodayDate()} unless told otherwise)
-- name (ALREADY PROVIDED as ${userName} - skip this)
-- weather_summary
-- sub_and_crew_count
-- issues_delays (if none mentioned, ask once)
-- visitors (if none mentioned, ask once)
-- notes_photos (optional)
+INFORMATION YOU NEED TO COLLECT:
+1. Weather conditions
+2. Number of crew/subs on site
+3. Any issues or delays (ask once if not mentioned)
+4. Any visitors (ask once if not mentioned)
+5. Additional notes (optional)
 
-CRITICAL RULES:
-1. You are ONLY collecting information - you CANNOT save or submit anything
-2. NEVER say "logged", "saved", "submitted", "recorded", or "complete"
-3. When you have all required fields, you MUST say EXACTLY: "I have all the information. Should I submit this log now?"
-4. DO NOT thank them for completing the log
-5. DO NOT say anything is recorded or saved
-6. You are just an assistant gathering information - only the user can submit
+HOW TO RESPOND:
+- Ask brief questions to collect missing information
+- When you have items 1-4 above, respond with ONLY this exact text: "Ready to submit. Say YES to save this log to Quickbase."
+- Do NOT use words like: complete, done, logged, saved, recorded, submitted
+- Do NOT thank the user until after they confirm submission
 
-CONVERSATION RULES:
-1. The superintendent may provide multiple pieces of information at once - extract everything they mention
-2. Ask one or two questions at a time for ONLY the missing information
-3. Be concise and mobile-friendly
-4. DO NOT ask for project or name - already provided
-5. DO NOT ask about the date - assume today unless they mention otherwise
-6. After each response, identify what's been provided and what's still needed
-7. When all REQUIRED fields (weather, crew count, issues, visitors) are collected, you MUST ask: "I have all the information. Should I submit this log now?"
-8. Wait for user confirmation before saying anything else
-
-Start the conversation.`;
+Start by asking: "What were the weather conditions and crew count today?"`;
             
             conversationHistory.push({ role: 'user', content: systemPrompt });
             
-            const welcomeMessage = `Hi ${userName}! Let's log today's work for Project ${projectId}. Tell me about what happened today - weather, crew count, any issues?`;
+            const welcomeMessage = `Hi ${userName}! What were the weather conditions and crew count today?`;
             addMessage('assistant', welcomeMessage);
             conversationHistory.push({ role: 'assistant', content: welcomeMessage });
         }
@@ -592,17 +579,14 @@ Start the conversation.`;
                 addMessage('assistant', assistantMessage);
                 conversationHistory.push({ role: 'assistant', content: assistantMessage });
                 
-                // Detect if AI is asking to submit - look for the exact phrase
+                // Detect if AI is ready for submission - look for exact phrase
                 const lowerMsg = assistantMessage.toLowerCase();
-                const isAskingToSubmit = 
-                    (lowerMsg.includes('should i submit') || 
-                     lowerMsg.includes('ready to submit') ||
-                     lowerMsg.includes('submit this log') ||
-                     lowerMsg.includes('submit the log')) &&
-                    lowerMsg.includes('?');
+                const isReadyToSubmit = 
+                    lowerMsg.includes('ready to submit') && 
+                    lowerMsg.includes('say yes');
                 
-                if (isAskingToSubmit) {
-                    console.log('AI asked for submission - showing submit button');
+                if (isReadyToSubmit) {
+                    console.log('AI is ready for submission - showing submit button');
                     document.getElementById('submitSection').classList.add('show');
                 }
                 
