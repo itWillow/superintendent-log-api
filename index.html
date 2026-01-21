@@ -588,41 +588,51 @@ Start the conversation.`;
                 // This is a failsafe in case AI doesn't ask properly
                 const conversationText = conversationHistory.map(m => m.content).join(' ').toLowerCase();
                 
-                const hasWeather = conversationText.includes('weather') || 
-                                  conversationText.includes('sunny') || 
-                                  conversationText.includes('cloudy') ||
-                                  conversationText.includes('rain') ||
-                                  conversationText.includes('temperature') ||
-                                  conversationText.match(/\d+\s*(degrees|°)/);
+                const hasWeather = conversationText.match(/(sunny|cloudy|rain|clear|overcast|weather|temperature|\d+\s*degrees?|\d+°)/i);
                 
-                const hasCrew = conversationText.match(/\d+\s*(crew|workers|people|subs)/);
+                const hasCrew = conversationText.match(/\d+\s*(crew|worker|people|person|sub|man|men)/i);
                 
-                const hasIssues = conversationText.includes('issue') || 
-                                 conversationText.includes('delay') ||
-                                 conversationText.includes('problem') ||
-                                 conversationText.includes('no issue') ||
-                                 conversationText.includes('none');
+                const hasIssuesResponse = conversationText.match(/(issue|delay|problem|no issue|none|no delay|no problem)/i);
                 
-                const hasVisitors = conversationText.includes('visitor') ||
-                                   conversationText.includes('no visitor') ||
-                                   conversationText.includes('inspector');
+                const hasVisitorsResponse = conversationText.match(/(visitor|no visitor|inspector|no one|nobody)/i) ||
+                                           conversationHistory.some(m => 
+                                               m.role === 'assistant' && 
+                                               m.content.toLowerCase().includes('visitor')
+                                           );
                 
-                console.log('Field check:', { hasWeather, hasCrew, hasIssues, hasVisitors });
+                // Check if user has responded to each question
+                const responseCount = conversationHistory.filter(m => m.role === 'user').length;
                 
-                // If we have all required fields OR AI asks to submit, show button
+                console.log('Field detection:', { 
+                    hasWeather: !!hasWeather, 
+                    hasCrew: !!hasCrew, 
+                    hasIssuesResponse: !!hasIssuesResponse, 
+                    hasVisitorsResponse: !!hasVisitorsResponse,
+                    responseCount,
+                    conversationLength: conversationHistory.length
+                });
+                
+                // If we have weather, crew, and at least 3 user responses, assume we're done
+                const shouldShowSubmit = (hasWeather && hasCrew && responseCount >= 3) || 
+                                        (hasWeather && hasCrew && hasIssuesResponse && hasVisitorsResponse);
+                
+                // If AI asks to submit, definitely show it
                 const lowerMsg = assistantMessage.toLowerCase();
-                const aiAsksToSubmit = lowerMsg.includes('submit');
+                const aiAsksToSubmit = lowerMsg.includes('submit') && !lowerMsg.includes('recorded') && !lowerMsg.includes('saved');
+                const aiSaysComplete = lowerMsg.includes('recorded') || lowerMsg.includes('logged') || lowerMsg.includes('saved') || lowerMsg.includes('complete');
                 
-                if ((hasWeather && hasCrew && hasIssues && hasVisitors) || aiAsksToSubmit) {
-                    console.log('All fields collected or AI asked - showing submit button');
+                console.log('Submit triggers:', { shouldShowSubmit, aiAsksToSubmit, aiSaysComplete });
+                
+                if (shouldShowSubmit || aiAsksToSubmit || aiSaysComplete) {
+                    console.log('Triggering submit button');
                     document.getElementById('submitSection').classList.add('show');
                     
-                    // If AI didn't ask, add a message
-                    if (!aiAsksToSubmit) {
-                        addMessage('assistant', 'I have all the information. Should I submit this log now?');
+                    // If AI said it's complete/saved (which is wrong), correct it
+                    if (aiSaysComplete && !aiAsksToSubmit) {
+                        addMessage('assistant', 'Should I submit this log to Quickbase now?');
                         conversationHistory.push({ 
                             role: 'assistant', 
-                            content: 'I have all the information. Should I submit this log now?' 
+                            content: 'Should I submit this log to Quickbase now?' 
                         });
                     }
                 }
