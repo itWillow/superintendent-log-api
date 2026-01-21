@@ -481,31 +481,36 @@
         function initializeChat() {
             conversationHistory = [];
             
-            const systemPrompt = `You are a data collection assistant for daily construction logs.
+            const systemPrompt = `You are helping a superintendent complete their daily log. Today's date is ${getTodayDate()}.
 
-GIVEN INFORMATION (do not ask about these):
-- Project: ${projectId}
-- Superintendent: ${userName}  
-- Date: ${getTodayDate()}
+Project ID: ${projectId} (already known, don't ask)
+Superintendent Name: ${userName} (already known, don't ask)
 
-INFORMATION YOU NEED TO COLLECT:
-1. Weather conditions
-2. Number of crew/subs on site
-3. Any issues or delays (ask once if not mentioned)
-4. Any visitors (ask once if not mentioned)
-5. Additional notes (optional)
+REQUIRED FIELDS TO COLLECT:
+- project (ALREADY PROVIDED as ${projectId} - skip this)
+- date (assume today: ${getTodayDate()} unless told otherwise)
+- name (ALREADY PROVIDED as ${userName} - skip this)
+- weather_summary
+- sub_and_crew_count
+- issues_delays (if none mentioned, ask once)
+- visitors (if none mentioned, ask once)
+- notes_photos (optional)
 
-HOW TO RESPOND:
-- Ask brief questions to collect missing information
-- When you have items 1-4 above, respond with ONLY this exact text: "Ready to submit. Say YES to save this log to Quickbase."
-- Do NOT use words like: complete, done, logged, saved, recorded, submitted
-- Do NOT thank the user until after they confirm submission
+CONVERSATION RULES:
+1. The superintendent may provide multiple pieces of information at once - extract everything they mention
+2. Ask one or two questions at a time for ONLY the missing information
+3. Be concise and mobile-friendly
+4. DO NOT ask for project or name - already provided
+5. DO NOT ask about the date - assume today unless they mention otherwise
+6. Start by asking about what happened today (weather, crew, issues, etc.)
+7. After each response, identify what's been provided and what's still needed
+8. When all REQUIRED fields are collected, ask: "Should I submit this log now?"
 
-Start by asking: "What were the weather conditions and crew count today?"`;
+Start the conversation.`;
             
             conversationHistory.push({ role: 'user', content: systemPrompt });
             
-            const welcomeMessage = `Hi ${userName}! What were the weather conditions and crew count today?`;
+            const welcomeMessage = `Hi! Let's log today's work for ${projectId}. Tell me about what happened today - weather, crew count, any issues?`;
             addMessage('assistant', welcomeMessage);
             conversationHistory.push({ role: 'assistant', content: welcomeMessage });
         }
@@ -579,14 +584,11 @@ Start by asking: "What were the weather conditions and crew count today?"`;
                 addMessage('assistant', assistantMessage);
                 conversationHistory.push({ role: 'assistant', content: assistantMessage });
                 
-                // Detect if AI is ready for submission - look for exact phrase
+                // Detect if AI is asking to submit
                 const lowerMsg = assistantMessage.toLowerCase();
-                const isReadyToSubmit = 
-                    lowerMsg.includes('ready to submit') && 
-                    lowerMsg.includes('say yes');
-                
-                if (isReadyToSubmit) {
-                    console.log('AI is ready for submission - showing submit button');
+                if (lowerMsg.includes('submit') && 
+                    (lowerMsg.includes('log') || lowerMsg.includes('now') || lowerMsg.includes('?'))) {
+                    console.log('AI asked for submission - showing submit button');
                     document.getElementById('submitSection').classList.add('show');
                 }
                 
