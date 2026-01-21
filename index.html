@@ -584,12 +584,47 @@ Start the conversation.`;
                 addMessage('assistant', assistantMessage);
                 conversationHistory.push({ role: 'assistant', content: assistantMessage });
                 
-                // Detect if AI is asking to submit
+                // Check if the conversation has enough information to submit
+                // This is a failsafe in case AI doesn't ask properly
+                const conversationText = conversationHistory.map(m => m.content).join(' ').toLowerCase();
+                
+                const hasWeather = conversationText.includes('weather') || 
+                                  conversationText.includes('sunny') || 
+                                  conversationText.includes('cloudy') ||
+                                  conversationText.includes('rain') ||
+                                  conversationText.includes('temperature') ||
+                                  conversationText.match(/\d+\s*(degrees|°)/);
+                
+                const hasCrew = conversationText.match(/\d+\s*(crew|workers|people|subs)/);
+                
+                const hasIssues = conversationText.includes('issue') || 
+                                 conversationText.includes('delay') ||
+                                 conversationText.includes('problem') ||
+                                 conversationText.includes('no issue') ||
+                                 conversationText.includes('none');
+                
+                const hasVisitors = conversationText.includes('visitor') ||
+                                   conversationText.includes('no visitor') ||
+                                   conversationText.includes('inspector');
+                
+                console.log('Field check:', { hasWeather, hasCrew, hasIssues, hasVisitors });
+                
+                // If we have all required fields OR AI asks to submit, show button
                 const lowerMsg = assistantMessage.toLowerCase();
-                if (lowerMsg.includes('submit') && 
-                    (lowerMsg.includes('log') || lowerMsg.includes('now') || lowerMsg.includes('?'))) {
-                    console.log('AI asked for submission - showing submit button');
+                const aiAsksToSubmit = lowerMsg.includes('submit');
+                
+                if ((hasWeather && hasCrew && hasIssues && hasVisitors) || aiAsksToSubmit) {
+                    console.log('All fields collected or AI asked - showing submit button');
                     document.getElementById('submitSection').classList.add('show');
+                    
+                    // If AI didn't ask, add a message
+                    if (!aiAsksToSubmit) {
+                        addMessage('assistant', 'I have all the information. Should I submit this log now?');
+                        conversationHistory.push({ 
+                            role: 'assistant', 
+                            content: 'I have all the information. Should I submit this log now?' 
+                        });
+                    }
                 }
                 
             } catch (error) {
