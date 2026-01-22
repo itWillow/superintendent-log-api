@@ -504,6 +504,8 @@ CONVERSATION RULES:
 5. DO NOT ask about the date - assume today unless they mention otherwise
 6. Start by asking about what happened today (weather, crew, issues, etc.)
 7. After each response, identify what's been provided and what's still needed
+8. Reword each response concise and professionally for entry. 
+9. Sum the number of sub_and_crew_count and mulitply by 8 to get TotalManHours for entry.
 8. When all REQUIRED fields are collected, ask: "Should I submit this log now?"
 
 Start the conversation.`;
@@ -590,7 +592,7 @@ Start the conversation.`;
                 
                 const hasWeather = conversationText.match(/(sunny|cloudy|rain|clear|overcast|weather|temperature|\d+\s*degrees?|\d+°)/i);
                 
-                const hasCrew = conversationText.match(/\d+\s*(crew|worker|people|person|sub|man|men)/i);
+                const hasCrew = conversationText.match(/\d+\s*(crew|worker|people|person|sub|subs|man|men|subcontractor|subcontractors)/i);
                 
                 const hasIssuesResponse = conversationText.match(/(issue|delay|problem|no issue|none|no delay|no problem)/i);
                 
