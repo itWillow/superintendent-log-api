@@ -53,7 +53,6 @@ IMPORTANT:
 - Always use "${todayDate}" for the date field unless the user explicitly mentioned a different date
 - Return ONLY the JSON object, no other text.`;
 
-
     const extractResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -98,12 +97,17 @@ IMPORTANT:
     // Calculate TotalManHours from crew count
     let totalManHours = 0;
     if (logData.sub_and_crew_count) {
-      // Extract number from crew count (e.g., "15 crew" -> 15)
-      const crewMatch = logData.sub_and_crew_count.match(/(\d+)/);
-      if (crewMatch) {
-        const crewCount = parseInt(crewMatch[1], 10);
-        totalManHours = crewCount * 8;
-        console.log('Calculated TotalManHours:', crewCount, 'x 8 =', totalManHours);
+      // Extract ALL numbers from crew count, even with text between them
+      // e.g., "4 painters with PaintCo in area B, 6 carpenters from SmithCo" -> [4, 6] -> 10
+      const numbers = logData.sub_and_crew_count.match(/\d+/g);
+      if (numbers) {
+        // Sum all numbers found
+        const totalCrew = numbers.reduce((sum, num) => sum + parseInt(num, 10), 0);
+        totalManHours = totalCrew * 8;
+        console.log('Crew count extraction:', logData.sub_and_crew_count);
+        console.log('Numbers found:', numbers, '-> Total crew:', totalCrew, '-> Man-hours:', totalManHours);
+      } else {
+        console.log('No numbers found in crew count:', logData.sub_and_crew_count);
       }
     }
 
