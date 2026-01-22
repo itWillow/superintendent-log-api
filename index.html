@@ -18,7 +18,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #e3f2fd 0%, #c5cae9 100%);
+            background: #121212;
             height: 100vh;
             overflow: hidden;
         }
@@ -30,13 +30,14 @@
             align-items: center;
             height: 100vh;
             padding: 2rem;
+            background: #121212;
         }
         
         .login-card {
-            background: white;
+            background: #1e1e1e;
             border-radius: 1rem;
             padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
             width: 100%;
             max-width: 400px;
         }
@@ -48,7 +49,7 @@
         }
         
         .login-card p {
-            color: #666;
+            color: #aaa;
             margin-bottom: 2rem;
             font-size: 0.875rem;
         }
@@ -59,7 +60,7 @@
         
         .form-group label {
             display: block;
-            color: #555;
+            color: #ccc;
             font-weight: 600;
             margin-bottom: 0.5rem;
             font-size: 0.875rem;
@@ -68,15 +69,18 @@
         .form-group input {
             width: 100%;
             padding: 0.875rem;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #333;
             border-radius: 0.5rem;
             font-size: 1rem;
             transition: border-color 0.2s;
+            background: #2a2a2a;
+            color: #fff;
         }
         
         .form-group input:focus {
             outline: none;
             border-color: #1976d2;
+            background: #333;
         }
         
         .login-btn {
@@ -306,7 +310,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.8);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -317,12 +321,13 @@
         }
         
         .success-card {
-            background: white;
+            background: #1e1e1e;
             padding: 2rem;
             border-radius: 1rem;
             text-align: center;
             margin: 1rem;
             max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
         
         .success-icon {
@@ -427,7 +432,7 @@
         <div class="success-card">
             <div class="success-icon">✓</div>
             <h2 style="color: #4caf50; margin-bottom: 0.5rem;">Log Submitted!</h2>
-            <p style="color: #666;">Your daily log has been saved to Quickbase</p>
+            <p style="color: #ccc;">Your daily log has been saved to Quickbase</p>
             <button class="new-log-btn" onclick="startNewLog()">Start New Log</button>
         </div>
     </div>
@@ -504,8 +509,6 @@ CONVERSATION RULES:
 5. DO NOT ask about the date - assume today unless they mention otherwise
 6. Start by asking about what happened today (weather, crew, issues, etc.)
 7. After each response, identify what's been provided and what's still needed
-8. Reword each response concise and professionally for entry. 
-9. Sum the number of sub_and_crew_count and mulitply by 8 to get TotalManHours for entry.
 8. When all REQUIRED fields are collected, ask: "Should I submit this log now?"
 
 Start the conversation.`;
@@ -592,7 +595,7 @@ Start the conversation.`;
                 
                 const hasWeather = conversationText.match(/(sunny|cloudy|rain|clear|overcast|weather|temperature|\d+\s*degrees?|\d+°)/i);
                 
-                const hasCrew = conversationText.match(/\d+\s*(crew|worker|people|person|sub|subs|man|men|subcontractor|subcontractors)/i);
+                const hasCrew = conversationText.match(/\d+\s*(crew|worker|people|person|sub|man|men)/i);
                 
                 const hasIssuesResponse = conversationText.match(/(issue|delay|problem|no issue|none|no delay|no problem)/i);
                 
