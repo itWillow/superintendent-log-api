@@ -1,671 +1,176 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1976d2">
-    <title>Daily Log</title>
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231976d2' width='100' height='100'/><text y='75' font-size='70' fill='white' font-family='Arial' x='50' text-anchor='middle'>📝</text></svg>">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #e3f2fd 0%, #c5cae9 100%);
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        .login-screen {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            padding: 2rem;
-        }
-        
-        .login-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .login-card h1 {
-            color: #1976d2;
-            margin-bottom: 0.5rem;
-            font-size: 1.75rem;
-        }
-        
-        .login-card p {
-            color: #666;
-            margin-bottom: 2rem;
-            font-size: 0.875rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            color: #555;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 0.875rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #1976d2;
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 1rem;
-            background: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .login-btn:active {
-            background: #1565c0;
-        }
-        
-        .login-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .app-container {
-            display: none;
-            flex-direction: column;
-            height: 100vh;
-        }
-        
-        .app-container.show {
-            display: flex;
-        }
-        
-        .header {
-            background: white;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        
-        .header h1 {
-            font-size: 1.25rem;
-            color: #1976d2;
-        }
-        
-        .logout-btn {
-            background: #f5f5f5;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            color: #666;
-            cursor: pointer;
-        }
-        
-        .header-info {
-            font-size: 0.75rem;
-            color: #666;
-        }
-        
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .message {
-            display: flex;
-            margin-bottom: 0.5rem;
-        }
-        
-        .message.user {
-            justify-content: flex-end;
-        }
-        
-        .message.assistant {
-            justify-content: flex-start;
-        }
-        
-        .message-bubble {
-            max-width: 80%;
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            word-wrap: break-word;
-        }
-        
-        .message.user .message-bubble {
-            background: #1976d2;
-            color: white;
-        }
-        
-        .message.assistant .message-bubble {
-            background: white;
-            color: #333;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .loading {
-            display: none;
-            justify-content: flex-start;
-            margin-bottom: 0.5rem;
-        }
-        
-        .loading.show {
-            display: flex;
-        }
-        
-        .loading-bubble {
-            background: white;
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .loading-dots {
-            display: flex;
-            gap: 0.25rem;
-        }
-        
-        .loading-dots span {
-            width: 8px;
-            height: 8px;
-            background: #1976d2;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-        
-        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
-        
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-        
-        .submit-section {
-            display: none;
-            padding: 1rem;
-            background: #e8f5e9;
-            border-top: 2px solid #4caf50;
-        }
-        
-        .submit-section.show {
-            display: block;
-        }
-        
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            background: #4caf50;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        .submit-btn:active {
-            background: #45a049;
-        }
-        
-        .submit-btn:disabled {
-            opacity: 0.5;
-        }
-        
-        .input-section {
-            padding: 1rem;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-            padding-bottom: calc(1rem + env(safe-area-inset-bottom));
-        }
-        
-        .input-container {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .input-field {
-            flex: 1;
-            padding: 0.875rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-        
-        .input-field:focus {
-            outline: none;
-            border-color: #1976d2;
-        }
-        
-        .send-btn {
-            padding: 0.875rem 1.5rem;
-            background: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        
-        .send-btn:active {
-            background: #1565c0;
-        }
-        
-        .send-btn:disabled {
-            opacity: 0.5;
-        }
-        
-        .success-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .success-overlay.show {
-            display: flex;
-        }
-        
-        .success-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            text-align: center;
-            margin: 1rem;
-            max-width: 400px;
-        }
-        
-        .success-icon {
-            width: 64px;
-            height: 64px;
-            background: #4caf50;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 2rem;
-        }
-        
-        .new-log-btn {
-            padding: 0.75rem 2rem;
-            background: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 1rem;
-        }
-    </style>
-</head>
-<body>
-    <!-- Login Screen -->
-    <div class="login-screen" id="loginScreen">
-        <div class="login-card">
-            <h1>📝 Daily Log</h1>
-            <p>Enter your information to start logging</p>
-            
-            <div class="form-group">
-                <label for="projectId">Project Record ID</label>
-                <input 
-                    type="number" 
-                    id="projectId" 
-                    placeholder="Enter project number"
-                    inputmode="numeric"
-                >
-            </div>
-            
-            <div class="form-group">
-                <label for="userName">Your Name</label>
-                <input 
-                    type="text" 
-                    id="userName" 
-                    placeholder="Enter your name"
-                >
-            </div>
-            
-            <button class="login-btn" onclick="startLog()">Start Logging</button>
-        </div>
-    </div>
+// api/submit.js - Handles data extraction and Quickbase submission
+export default async function handler(req, res) {
+  // Enable CORS - Allow all origins
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
+  );
 
-    <!-- App Container -->
-    <div class="app-container" id="appContainer">
-        <div class="header">
-            <div class="header-top">
-                <h1>Daily Log</h1>
-                <button class="logout-btn" onclick="logout()">Change Info</button>
-            </div>
-            <div class="header-info" id="headerInfo"></div>
-        </div>
-        
-        <div class="chat-container" id="chatContainer"></div>
-        
-        <div class="loading" id="loadingIndicator">
-            <div class="loading-bubble">
-                <div class="loading-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="submit-section" id="submitSection">
-            <p style="margin-bottom: 0.5rem; color: #2e7d32; font-weight: 600;">✓ Ready to submit!</p>
-            <button class="submit-btn" id="submitBtn" onclick="submitToQuickbase()">
-                📝 Submit to Quickbase
-            </button>
-        </div>
-        
-        <div class="input-section">
-            <div class="input-container">
-                <input 
-                    type="text" 
-                    id="userInput" 
-                    class="input-field" 
-                    placeholder="Type your response..."
-                    onkeypress="handleKeyPress(event)"
-                >
-                <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-    </div>
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { conversationHistory, projectId, userName } = req.body;
+
+    if (!conversationHistory || !Array.isArray(conversationHistory)) {
+      return res.status(400).json({ error: 'conversationHistory array is required' });
+    }
+
+    console.log('Received pre-filled data:', { projectId, userName });
+
+    // Get today's date
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    const todayDate = `${day}-${month}-${year}`;
+
+    // Step 1: Extract data from conversation using Claude
+    const extractPrompt = `Based on our entire conversation, extract the following fields in JSON format:
+
+{
+  "project": "project name or ID",
+  "date": "${todayDate}",
+  "name": "superintendent name",
+  "weather_summary": "weather description",
+  "sub_and_crew_count": "count details",
+  "issues_delays": "any issues or 'None'",
+  "visitors": "visitor info or 'None'",
+  "notes_photos": "notes or 'None'"
+}
+
+IMPORTANT: 
+- Always use "${todayDate}" for the date field unless the user explicitly mentioned a different date
+- Return ONLY the JSON object, no other text.`;
+
+
+    const extractResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [
+          ...conversationHistory,
+          { role: 'user', content: extractPrompt }
+        ]
+      })
+    });
+
+    if (!extractResponse.ok) {
+      throw new Error('Failed to extract data from conversation');
+    }
+
+    const extractData = await extractResponse.json();
+    const extractedText = extractData.content[0].text;
+    const jsonMatch = extractedText.match(/\{[\s\S]*\}/);
     
-    <!-- Success Overlay -->
-    <div class="success-overlay" id="successOverlay">
-        <div class="success-card">
-            <div class="success-icon">✓</div>
-            <h2 style="color: #4caf50; margin-bottom: 0.5rem;">Log Submitted!</h2>
-            <p style="color: #666;">Your daily log has been saved to Quickbase</p>
-            <button class="new-log-btn" onclick="startNewLog()">Start New Log</button>
-        </div>
-    </div>
+    if (!jsonMatch) {
+      throw new Error('Could not extract JSON from response');
+    }
     
-    <script>
-        const API_URL = 'https://superintendent-log-api.vercel.app';
-        
-        let conversationHistory = [];
-        let isLoading = false;
-        let projectId = null;
-        let userName = null;
-        
-        function getTodayDate() {
-            const today = new Date();
-            const day = String(today.getDate()).padStart(2, '0');
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const year = today.getFullYear();
-            return `${day}-${month}-${year}`;
-        }
-        
-        function startLog() {
-            projectId = document.getElementById('projectId').value.trim();
-            userName = document.getElementById('userName').value.trim();
-            
-            if (!projectId || !userName) {
-                alert('Please enter both Project ID and your name');
-                return;
-            }
-            
-            // Save to localStorage for convenience
-            localStorage.setItem('lastProjectId', projectId);
-            localStorage.setItem('lastUserName', userName);
-            
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appContainer').classList.add('show');
-            document.getElementById('headerInfo').textContent = `Project ${projectId} • ${userName} • ${getTodayDate()}`;
-            
-            initializeChat();
-        }
-        
-        function logout() {
-            if (confirm('Change project info? Current conversation will be lost.')) {
-                location.reload();
-            }
-        }
-        
-        function startNewLog() {
-            location.reload();
-        }
-        
-        function initializeChat() {
-            conversationHistory = [];
-            
-            const systemPrompt = `You are helping a superintendent complete their daily log. Today's date is ${getTodayDate()}.
+    const logData = JSON.parse(jsonMatch[0]);
+    
+    // Override with pre-filled data if provided
+    if (projectId) {
+      logData.project = projectId;
+      console.log('Using pre-filled project:', projectId);
+    }
+    if (userName) {
+      logData.name = userName;
+      console.log('Using pre-filled user:', userName);
+    }
 
-Project ID: ${projectId} (already known, don't ask)
-Superintendent Name: ${userName} (already known, don't ask)
+    // Calculate TotalManHours from crew count
+    let totalManHours = 0;
+    if (logData.sub_and_crew_count) {
+      // Extract number from crew count (e.g., "15 crew" -> 15)
+      const crewMatch = logData.sub_and_crew_count.match(/(\d+)/);
+      if (crewMatch) {
+        const crewCount = parseInt(crewMatch[1], 10);
+        totalManHours = crewCount * 8;
+        console.log('Calculated TotalManHours:', crewCount, 'x 8 =', totalManHours);
+      }
+    }
 
-REQUIRED FIELDS TO COLLECT:
-- project (ALREADY PROVIDED as ${projectId} - skip this)
-- date (assume today: ${getTodayDate()} unless told otherwise)
-- name (ALREADY PROVIDED as ${userName} - skip this)
-- weather_summary
-- sub_and_crew_count
-- issues_delays (if none mentioned, ask once)
-- visitors (if none mentioned, ask once)
-- notes_photos (optional)
+    // Step 2: Create conversation transcript
+    const transcript = conversationHistory.map(msg => 
+      `${msg.role === 'user' ? 'Superintendent' : 'AI'}: ${msg.content}`
+    ).join('\n\n');
 
-CRITICAL RULES:
-1. You are ONLY collecting information - you CANNOT save or submit anything
-2. NEVER say "logged", "saved", "submitted", "recorded", or "complete"
-3. When you have all required fields, you MUST say EXACTLY: "I have all the information. Should I submit this log now?"
-4. DO NOT thank them for completing the log
-5. DO NOT say anything is recorded or saved
-6. You are just an assistant gathering information - only the user can submit
+    console.log('Extracted log data:', logData);
+    console.log('Project ID type:', typeof projectId, projectId);
 
-CONVERSATION RULES:
-1. The superintendent may provide multiple pieces of information at once - extract everything they mention
-2. Ask one or two questions at a time for ONLY the missing information
-3. Be concise and mobile-friendly
-4. DO NOT ask for project or name - already provided
-5. DO NOT ask about the date - assume today unless they mention otherwise
-6. After each response, identify what's been provided and what's still needed
-7. When all REQUIRED fields (weather, crew count, issues, visitors) are collected, you MUST ask: "I have all the information. Should I submit this log now?"
-8. Wait for user confirmation before saying anything else
+    // Prepare the project value - convert to number if it's numeric
+    const projectValue = projectId ? parseInt(projectId, 10) : logData.project;
+    
+    if (projectId && isNaN(projectValue)) {
+      console.error('Project ID is not a valid number:', projectId);
+      throw new Error('Project ID must be a numeric value');
+    }
 
-Start the conversation.`;
-            
-            conversationHistory.push({ role: 'user', content: systemPrompt });
-            
-            const welcomeMessage = `Hi ${userName}! Let's log today's work for Project ${projectId}. Tell me about what happened today - weather, crew count, any issues?`;
-            addMessage('assistant', welcomeMessage);
-            conversationHistory.push({ role: 'assistant', content: welcomeMessage });
-        }
-        
-        function addMessage(role, content) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${role}`;
-            
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = content;
-            
-            messageDiv.appendChild(bubbleDiv);
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-        
-        function handleKeyPress(event) {
-            if (event.key === 'Enter' && !isLoading) {
-                sendMessage();
-            }
-        }
-        
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            
-            if (!message || isLoading) return;
-            
-            input.value = '';
-            addMessage('user', message);
-            conversationHistory.push({ role: 'user', content: message });
-            
-            // Check if user is confirming submission
-            const submitSection = document.getElementById('submitSection');
-            const lowerMessage = message.toLowerCase();
-            
-            if (submitSection.classList.contains('show') && 
-                (lowerMessage === 'yes' || 
-                 lowerMessage === 'confirm' ||
-                 lowerMessage === 'submit' ||
-                 lowerMessage.includes('yes') ||
-                 lowerMessage.includes('submit'))) {
-                await submitToQuickbase();
-                return;
-            }
-            
-            isLoading = true;
-            document.getElementById('loadingIndicator').classList.add('show');
-            document.getElementById('sendBtn').disabled = true;
-            
-            try {
-                const response = await fetch(API_URL + '/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        messages: conversationHistory.slice(1)
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('API request failed');
-                }
-                
-                const data = await response.json();
-                const assistantMessage = data.content[0].text;
-                
-                addMessage('assistant', assistantMessage);
-                conversationHistory.push({ role: 'assistant', content: assistantMessage });
-                
-                // Detect if AI is asking to submit - look for the exact phrase
-                const lowerMsg = assistantMessage.toLowerCase();
-                const isAskingToSubmit = 
-                    (lowerMsg.includes('should i submit') || 
-                     lowerMsg.includes('ready to submit') ||
-                     lowerMsg.includes('submit this log') ||
-                     lowerMsg.includes('submit the log')) &&
-                    lowerMsg.includes('?');
-                
-                if (isAskingToSubmit) {
-                    console.log('AI asked for submission - showing submit button');
-                    document.getElementById('submitSection').classList.add('show');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                addMessage('assistant', 'Sorry, there was an error. Please try again.');
-            } finally {
-                isLoading = false;
-                document.getElementById('loadingIndicator').classList.remove('show');
-                document.getElementById('sendBtn').disabled = false;
-            }
-        }
-        
-        async function submitToQuickbase() {
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            
-            addMessage('assistant', '⏳ Submitting to Quickbase...');
-            
-            try {
-                const response = await fetch(API_URL + '/api/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        conversationHistory: conversationHistory.slice(1),
-                        projectId: projectId,
-                        userName: userName
-                    })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.details || errorData.error || 'Submission failed');
-                }
-                
-                const result = await response.json();
-                console.log('Submit success:', result);
-                
-                document.getElementById('successOverlay').classList.add('show');
-                
-            } catch (error) {
-                console.error('Submission error:', error);
-                addMessage('assistant', `❌ Error: ${error.message}`);
-                submitBtn.disabled = false;
-                submitBtn.textContent = '📝 Submit to Quickbase';
-            }
-        }
-        
-        // Pre-fill last used values on page load
-        window.addEventListener('load', () => {
-            const lastProject = localStorage.getItem('lastProjectId');
-            const lastUser = localStorage.getItem('lastUserName');
-            
-            if (lastProject) {
-                document.getElementById('projectId').value = lastProject;
-            }
-            if (lastUser) {
-                document.getElementById('userName').value = lastUser;
-            }
-        });
-    </script>
-</body>
-</html>
+    // Step 3: Submit to Quickbase
+    const qbPayload = {
+      to: process.env.QB_TABLE_ID,
+      data: [{
+        14: { value: projectValue }, // Related Project (Field 14) - NUMERIC
+        6: { value: logData.date },
+        19: { value: userName || logData.name }, // Author_User (Field 19) - TEXT
+        8: { value: logData.weather_summary },
+        9: { value: logData.sub_and_crew_count },
+        10: { value: logData.issues_delays },
+        11: { value: logData.visitors },
+        12: { value: logData.notes_photos },
+        13: { value: transcript },
+        20: { value: totalManHours } // TotalManHours (Field 20) - NUMERIC
+      }]
+    };
+
+    console.log('Quickbase payload:', JSON.stringify(qbPayload, null, 2));
+
+    const qbResponse = await fetch('https://api.quickbase.com/v1/records', {
+      method: 'POST',
+      headers: {
+        'QB-Realm-Hostname': process.env.QB_REALM,
+        'Authorization': `QB-USER-TOKEN ${process.env.QB_USER_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(qbPayload)
+    });
+
+    if (!qbResponse.ok) {
+      const errorText = await qbResponse.text();
+      console.error('Quickbase error:', errorText);
+      throw new Error(`Quickbase submission failed: ${errorText}`);
+    }
+
+    const qbResult = await qbResponse.json();
+
+    return res.status(200).json({
+      success: true,
+      extractedData: logData,
+      quickbaseResponse: qbResult
+    });
+
+  } catch (error) {
+    console.error('Server error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message 
+    });
+  }
+}
